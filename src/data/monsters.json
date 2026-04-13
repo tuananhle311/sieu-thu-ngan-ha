@@ -1,0 +1,314 @@
+{
+  "monsters": [
+    {
+      "id": 1,
+      "name": "Bò Mất Ngủ",
+      "nameEn": "Sleepless Cow",
+      "element": "fire",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 2,
+      "name": "Công Lửa",
+      "nameEn": "Fire Peacock",
+      "element": "fire",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 3,
+      "name": "Dơi Mặt Trời",
+      "nameEn": "Sun Bat",
+      "element": "fire",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 4,
+      "name": "Kiến Lân Tinh",
+      "nameEn": "Phosphorus Ant",
+      "element": "fire",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 5,
+      "name": "Sói Lửa",
+      "nameEn": "Fire Wolf",
+      "element": "fire",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 6,
+      "name": "Tinh Linh Lửa",
+      "nameEn": "Fire Spirit",
+      "element": "fire",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 7,
+      "name": "Báo Lửa",
+      "nameEn": "Fire Leopard",
+      "element": "fire",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 8,
+      "name": "Cú Lửa",
+      "nameEn": "Fire Owl",
+      "element": "fire",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 9,
+      "name": "Rồng Ngủ Nướng",
+      "nameEn": "Grilled Sleeping Dragon",
+      "element": "fire",
+      "power": 4,
+      "requirement": { "fireSymbols": 2 }
+    },
+    {
+      "id": 10,
+      "name": "Phượng Hoàng Ngàn Tuổi",
+      "nameEn": "Thousand-Year Phoenix",
+      "element": "fire",
+      "power": 4,
+      "requirement": { "fireSymbols": 2 }
+    },
+    {
+      "id": 11,
+      "name": "Cà Rem Kem Chuối",
+      "nameEn": "Banana Ice Cream",
+      "element": "water",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 12,
+      "name": "Nanh Trắng",
+      "nameEn": "White Fang",
+      "element": "water",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 13,
+      "name": "Ngọc Trai Vui Vẻ",
+      "nameEn": "Happy Pearl",
+      "element": "water",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 14,
+      "name": "Sứa Điện",
+      "nameEn": "Electric Jellyfish",
+      "element": "water",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 15,
+      "name": "Tiên Tôm Tích",
+      "nameEn": "Mantis Shrimp Fairy",
+      "element": "water",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 16,
+      "name": "Tinh Linh Nước",
+      "nameEn": "Water Spirit",
+      "element": "water",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 17,
+      "name": "Cá Chuồn Chuồn",
+      "nameEn": "Flying Fish",
+      "element": "water",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 18,
+      "name": "Lạc Đà Chở Đảo",
+      "nameEn": "Island-Carrying Camel",
+      "element": "water",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 19,
+      "name": "Gấu Gai",
+      "nameEn": "Spiky Bear",
+      "element": "water",
+      "power": 4,
+      "requirement": { "waterSymbols": 2 }
+    },
+    {
+      "id": 20,
+      "name": "Chong Chóng Bà Tám",
+      "nameEn": "Gossiping Pinwheel",
+      "element": "air",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 21,
+      "name": "Heo Siêu Âm",
+      "nameEn": "Ultrasonic Pig",
+      "element": "air",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 22,
+      "name": "Nấm Hát Hò",
+      "nameEn": "Singing Mushroom",
+      "element": "air",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 23,
+      "name": "Ong Ồn Ào",
+      "nameEn": "Noisy Bee",
+      "element": "air",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 24,
+      "name": "Khói Xây Xẩm",
+      "nameEn": "Dizzy Smoke",
+      "element": "air",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 25,
+      "name": "Rồng Giá Rét",
+      "nameEn": "Frost Dragon",
+      "element": "air",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 26,
+      "name": "Tinh Linh Khí",
+      "nameEn": "Air Spirit",
+      "element": "air",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 27,
+      "name": "Cây Đào Ngàn Tuổi",
+      "nameEn": "Thousand-Year Peach Tree",
+      "element": "air",
+      "power": 4,
+      "requirement": { "airSymbols": 2 }
+    },
+    {
+      "id": 28,
+      "name": "Tia Chớp",
+      "nameEn": "Lightning Bolt",
+      "element": "air",
+      "power": 4,
+      "requirement": { "airSymbols": 2 }
+    },
+    {
+      "id": 29,
+      "name": "Cây Ăn Chay",
+      "nameEn": "Vegetarian Plant",
+      "element": "earth",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 30,
+      "name": "Củ Cải Vui Vẻ",
+      "nameEn": "Happy Radish",
+      "element": "earth",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 31,
+      "name": "Gấu Mèo Măng Cụt",
+      "nameEn": "Mangosteen Panda",
+      "element": "earth",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 32,
+      "name": "Sâu 3 Ngấn",
+      "nameEn": "Three-Ringed Caterpillar",
+      "element": "earth",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 33,
+      "name": "Tắc Kè Biến Hình",
+      "nameEn": "Shape-Shifting Gecko",
+      "element": "earth",
+      "power": 2,
+      "requirement": null
+    },
+    {
+      "id": 34,
+      "name": "Cá Sấu Bụng Bự",
+      "nameEn": "Big-Belly Crocodile",
+      "element": "earth",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 35,
+      "name": "Tinh Linh Đất",
+      "nameEn": "Earth Spirit",
+      "element": "earth",
+      "power": 3,
+      "requirement": null
+    },
+    {
+      "id": 36,
+      "name": "Rau Muống Lực Lưỡng",
+      "nameEn": "Muscular Water Spinach",
+      "element": "earth",
+      "power": 4,
+      "requirement": { "earthSymbols": 2 }
+    },
+    {
+      "id": 37,
+      "name": "Rùa Ngủ Quên",
+      "nameEn": "Oversleeping Turtle",
+      "element": "earth",
+      "power": 4,
+      "requirement": { "earthSymbols": 2 }
+    },
+    {
+      "id": 38,
+      "name": "Tinh Linh Khí Extra",
+      "nameEn": "Extra Air Spirit",
+      "element": "air",
+      "power": 2,
+      "requirement": null
+    }
+  ],
+  "elementRewards": {
+    "fire": { "type": "permanentPower", "value": 1, "description": "+1 Sức mạnh vĩnh viễn" },
+    "water": { "type": "treasureCard", "value": 1, "description": "+1 Thẻ bảo bối" },
+    "earth": { "type": "chickenLeg", "value": 1, "description": "+1 Đùi gà" },
+    "air": { "type": "victoryPoint", "value": 1, "description": "+1 Điểm chiến công" }
+  }
+}

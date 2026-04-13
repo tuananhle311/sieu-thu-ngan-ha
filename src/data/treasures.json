@@ -1,0 +1,326 @@
+{
+  "treasures": [
+    {
+      "id": 1,
+      "name": "Kính Cường Lực",
+      "nameEn": "Reinforced Glasses",
+      "type": "instant",
+      "quantity": 5,
+      "description": "Vô hiệu hóa thẻ bảo bối đối thủ vừa sử dụng",
+      "descriptionEn": "Nullify the treasure card an opponent just played",
+      "effect": {
+        "type": "block_treasure",
+        "trigger": "on_opponent_treasure"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bánh Mì La Liếm",
+      "nameEn": "Licking Bread",
+      "type": "instant",
+      "quantity": 4,
+      "description": "Nhận 1 điểm chiến công khi đối thủ nhận điểm",
+      "descriptionEn": "Gain 1 victory point when an opponent gains points",
+      "effect": {
+        "type": "gain_on_opponent_gain",
+        "reward": { "victoryPoints": 1 },
+        "trigger": "on_opponent_gain_points"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Gương Hoán Đổi",
+      "nameEn": "Swap Mirror",
+      "type": "action",
+      "quantity": 3,
+      "description": "Đổi quái thú của bạn với quái thú của đối thủ",
+      "descriptionEn": "Swap one of your monsters with an opponent's monster",
+      "effect": {
+        "type": "swap_monster",
+        "trigger": "on_play"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Yoyo Thôi Miên",
+      "nameEn": "Hypnotic Yoyo",
+      "type": "action",
+      "quantity": 2,
+      "description": "Lấy thẻ quái thú của đối thủ",
+      "descriptionEn": "Take a monster card from an opponent",
+      "effect": {
+        "type": "steal_monster",
+        "trigger": "on_play"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Bùa Số 1",
+      "nameEn": "Charm Number 1",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Đặt kết quả xúc xắc thành 1",
+      "descriptionEn": "Set dice result to 1",
+      "effect": {
+        "type": "set_dice",
+        "value": 1,
+        "trigger": "on_dice_roll"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Bùa Số 2",
+      "nameEn": "Charm Number 2",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Đặt kết quả xúc xắc thành 2",
+      "descriptionEn": "Set dice result to 2",
+      "effect": {
+        "type": "set_dice",
+        "value": 2,
+        "trigger": "on_dice_roll"
+      }
+    },
+    {
+      "id": 7,
+      "name": "Bùa Số 3",
+      "nameEn": "Charm Number 3",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Đặt kết quả xúc xắc thành 3",
+      "descriptionEn": "Set dice result to 3",
+      "effect": {
+        "type": "set_dice",
+        "value": 3,
+        "trigger": "on_dice_roll"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Bùa Số 4",
+      "nameEn": "Charm Number 4",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Đặt kết quả xúc xắc thành 4",
+      "descriptionEn": "Set dice result to 4",
+      "effect": {
+        "type": "set_dice",
+        "value": 4,
+        "trigger": "on_dice_roll"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Bùa Số 5",
+      "nameEn": "Charm Number 5",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Đặt kết quả xúc xắc thành 5",
+      "descriptionEn": "Set dice result to 5",
+      "effect": {
+        "type": "set_dice",
+        "value": 5,
+        "trigger": "on_dice_roll"
+      }
+    },
+    {
+      "id": 10,
+      "name": "Bùa Số 6",
+      "nameEn": "Charm Number 6",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Đặt kết quả xúc xắc thành 6",
+      "descriptionEn": "Set dice result to 6",
+      "effect": {
+        "type": "set_dice",
+        "value": 6,
+        "trigger": "on_dice_roll"
+      }
+    },
+    {
+      "id": 11,
+      "name": "Miễn Phí Vào Cổng",
+      "nameEn": "Free Entry",
+      "type": "action",
+      "quantity": 1,
+      "description": "Vào hang mà không cần trả đùi gà",
+      "descriptionEn": "Enter a cave without paying chicken legs",
+      "effect": {
+        "type": "free_cave_entry",
+        "trigger": "before_cave_entry"
+      }
+    },
+    {
+      "id": 12,
+      "name": "Găng Tay Đạo Chích",
+      "nameEn": "Thief's Gloves",
+      "type": "action",
+      "quantity": 1,
+      "description": "Lấy cắp thẻ bảo bối của đối thủ",
+      "descriptionEn": "Steal a treasure card from an opponent",
+      "effect": {
+        "type": "steal_treasure",
+        "trigger": "on_play"
+      }
+    },
+    {
+      "id": 13,
+      "name": "Thẻ Mượn Thú",
+      "nameEn": "Monster Loan Card",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Mượn sức mạnh Lửa từ đối thủ trong chiến đấu",
+      "descriptionEn": "Borrow Fire power from opponents during combat",
+      "effect": {
+        "type": "borrow_fire_power",
+        "trigger": "on_combat"
+      }
+    },
+    {
+      "id": 14,
+      "name": "Bùa Sai Khiến",
+      "nameEn": "Command Charm",
+      "type": "action",
+      "quantity": 1,
+      "description": "Bắt đối thủ chiến đấu cùng bạn",
+      "descriptionEn": "Force an opponent to fight alongside you",
+      "effect": {
+        "type": "force_ally_combat",
+        "trigger": "on_combat"
+      }
+    },
+    {
+      "id": 15,
+      "name": "Nước Thanh Tẩy",
+      "nameEn": "Purifying Water",
+      "type": "action",
+      "quantity": 1,
+      "description": "Đổi quái thú của bạn với quái thú trong hang mà không cần chiến đấu",
+      "descriptionEn": "Swap your monster with a cave monster without combat",
+      "effect": {
+        "type": "swap_cave_monster",
+        "trigger": "on_play"
+      }
+    },
+    {
+      "id": 16,
+      "name": "Gối Ru Ngủ",
+      "nameEn": "Sleeping Pillow",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Ngăn đối thủ sử dụng quái thú/bảo bối",
+      "descriptionEn": "Prevent an opponent from using monsters/treasures",
+      "effect": {
+        "type": "block_action",
+        "trigger": "on_opponent_action"
+      }
+    },
+    {
+      "id": 17,
+      "name": "Đùi Gà Thuần Chủng",
+      "nameEn": "Pure Chicken Leg",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Kích hoạt khi đối thủ nhận quái thú",
+      "descriptionEn": "Activate when an opponent receives a monster",
+      "effect": {
+        "type": "trigger_on_opponent_monster",
+        "trigger": "on_opponent_capture"
+      }
+    },
+    {
+      "id": 18,
+      "name": "Kính Mắt Thờ Ơ",
+      "nameEn": "Indifferent Glasses",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Bỏ qua hiệu ứng thẻ sự kiện",
+      "descriptionEn": "Ignore the effect of an event card",
+      "effect": {
+        "type": "block_event",
+        "trigger": "on_event"
+      }
+    },
+    {
+      "id": 19,
+      "name": "Sách Khai Sáng",
+      "nameEn": "Enlightenment Book",
+      "type": "action",
+      "quantity": 1,
+      "description": "Khôi phục khả năng kỹ năng nhân vật",
+      "descriptionEn": "Restore character skill ability",
+      "effect": {
+        "type": "refresh_skill",
+        "trigger": "on_play"
+      }
+    },
+    {
+      "id": 20,
+      "name": "Chổi Xí Xoá",
+      "nameEn": "Erasing Broom",
+      "type": "action",
+      "quantity": 1,
+      "description": "Hủy thẻ quái thú của đối thủ",
+      "descriptionEn": "Destroy an opponent's monster card",
+      "effect": {
+        "type": "destroy_monster",
+        "trigger": "on_play"
+      }
+    },
+    {
+      "id": 21,
+      "name": "Vitamin Siêu Cấp",
+      "nameEn": "Super Vitamin",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Cộng thêm xúc xắc cho đồng minh trong chiến đấu",
+      "descriptionEn": "Add extra dice for an ally in combat",
+      "effect": {
+        "type": "ally_dice_bonus",
+        "trigger": "on_ally_combat"
+      }
+    },
+    {
+      "id": 22,
+      "name": "Trượng 2-1",
+      "nameEn": "Staff 2-1",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Thắng chiến đấu nếu đổ ra 1 hoặc 2",
+      "descriptionEn": "Win combat if you roll 1 or 2",
+      "effect": {
+        "type": "auto_win_on_dice",
+        "values": [1, 2],
+        "trigger": "on_combat"
+      }
+    },
+    {
+      "id": 23,
+      "name": "Khiên 4-3",
+      "nameEn": "Shield 4-3",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Thắng chiến đấu nếu đổ ra 3 hoặc 4",
+      "descriptionEn": "Win combat if you roll 3 or 4",
+      "effect": {
+        "type": "auto_win_on_dice",
+        "values": [3, 4],
+        "trigger": "on_combat"
+      }
+    },
+    {
+      "id": 24,
+      "name": "Kiếm 6-5",
+      "nameEn": "Sword 6-5",
+      "type": "instant",
+      "quantity": 1,
+      "description": "Thắng chiến đấu nếu đổ ra 5 hoặc 6",
+      "descriptionEn": "Win combat if you roll 5 or 6",
+      "effect": {
+        "type": "auto_win_on_dice",
+        "values": [5, 6],
+        "trigger": "on_combat"
+      }
+    }
+  ]
+}

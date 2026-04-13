@@ -1,0 +1,267 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "name": "Sinh Nhật Vui Vẻ",
+      "nameEn": "Happy Birthday",
+      "type": "reward",
+      "description": "Người đổ xúc xắc cao nhất nhận đùi gà",
+      "descriptionEn": "Player with highest dice roll receives chicken legs",
+      "effect": {
+        "type": "highest_dice_reward",
+        "reward": { "chickenLegs": 1 }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Thương Gia Xứ Lạ",
+      "nameEn": "Foreign Merchant",
+      "type": "reward",
+      "description": "Người thắng nhận bảo bối ngẫu nhiên",
+      "descriptionEn": "Winner receives a random treasure",
+      "effect": {
+        "type": "random_treasure_reward"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Rương Phép Thuật",
+      "nameEn": "Magic Chest",
+      "type": "reward",
+      "description": "Đổ xúc xắc quyết định nhận/mất quái thú/bảo bối/đùi gà",
+      "descriptionEn": "Roll dice to determine if you gain or lose monster/treasure/chicken legs",
+      "effect": {
+        "type": "dice_lottery",
+        "outcomes": {
+          "1": { "lose": "monster" },
+          "2": { "lose": "treasure" },
+          "3": { "lose": "chickenLeg" },
+          "4": { "gain": "chickenLeg" },
+          "5": { "gain": "treasure" },
+          "6": { "gain": "monster" }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "name": "Giày Của Gió",
+      "nameEn": "Wind Shoes",
+      "type": "reward",
+      "description": "Người điểm thấp nhất đổ xúc xắc nhận điểm chiến công",
+      "descriptionEn": "Player with lowest points rolls dice for victory points",
+      "effect": {
+        "type": "lowest_score_dice_reward",
+        "reward": { "victoryPoints": "dice" }
+      }
+    },
+    {
+      "id": 5,
+      "name": "Nâng Cấp Quái Thú",
+      "nameEn": "Monster Upgrade",
+      "type": "reward",
+      "description": "Đổi đùi gà + quái thú để lấy quái thú trong hang + phần thưởng",
+      "descriptionEn": "Trade chicken legs + monster for a cave monster + bonus",
+      "effect": {
+        "type": "monster_upgrade"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Lệnh Triệu Tập",
+      "nameEn": "Summon Order",
+      "type": "penalty",
+      "description": "Đổ lẻ thì bỏ lượt",
+      "descriptionEn": "Roll odd to skip your turn",
+      "effect": {
+        "type": "odd_dice_skip_turn"
+      }
+    },
+    {
+      "id": 7,
+      "name": "Bảo Bối Đi Lạc",
+      "nameEn": "Lost Treasure",
+      "type": "penalty",
+      "description": "Mất bảo bối ngẫu nhiên",
+      "descriptionEn": "Lose a random treasure card",
+      "effect": {
+        "type": "lose_random_treasure"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Gấu Mèo Tặc",
+      "nameEn": "Panda Thief",
+      "type": "penalty",
+      "description": "Người giàu nhất mất đùi gà",
+      "descriptionEn": "Richest player loses chicken legs",
+      "effect": {
+        "type": "richest_lose_chicken_legs",
+        "amount": 1
+      }
+    },
+    {
+      "id": 9,
+      "name": "Nhà Giả Kim",
+      "nameEn": "The Alchemist",
+      "type": "penalty",
+      "description": "Trả đùi gà để lấy cắp từ người khác",
+      "descriptionEn": "Pay chicken legs to steal from another player",
+      "effect": {
+        "type": "pay_to_steal",
+        "cost": { "chickenLegs": 2 }
+      }
+    },
+    {
+      "id": 10,
+      "name": "Hoàn Trả Đùi Gà",
+      "nameEn": "Chicken Leg Refund",
+      "type": "neutral",
+      "description": "Hoàn lại đùi gà khi thu phục hang thành công",
+      "descriptionEn": "Get chicken legs refunded on successful cave capture",
+      "effect": {
+        "type": "refund_on_success"
+      }
+    },
+    {
+      "id": 11,
+      "name": "Vé Đặt Cược",
+      "nameEn": "Betting Ticket",
+      "type": "neutral",
+      "description": "Dự đoán kết quả chiến đấu, đúng +2 điểm chiến công",
+      "descriptionEn": "Predict combat result, +2 victory points if correct",
+      "effect": {
+        "type": "bet_on_combat",
+        "reward": { "victoryPoints": 2 }
+      }
+    },
+    {
+      "id": 12,
+      "name": "Cửa Hàng Bí Mật",
+      "nameEn": "Secret Shop",
+      "type": "neutral",
+      "description": "Mua bảo bối bằng đùi gà",
+      "descriptionEn": "Buy treasures with chicken legs",
+      "effect": {
+        "type": "shop",
+        "cost": { "chickenLegs": 2 },
+        "reward": { "treasures": 1 }
+      }
+    },
+    {
+      "id": 13,
+      "name": "Tiệm Cầm Đồ",
+      "nameEn": "Pawn Shop",
+      "type": "neutral",
+      "description": "Đổi bảo bối lấy đùi gà",
+      "descriptionEn": "Trade treasures for chicken legs",
+      "effect": {
+        "type": "pawn",
+        "cost": { "treasures": 1 },
+        "reward": { "chickenLegs": 2 }
+      }
+    },
+    {
+      "id": 14,
+      "name": "Giếng Nước Mát Mẻ",
+      "nameEn": "Cool Water Well",
+      "type": "neutral",
+      "description": "Khôi phục tất cả kỹ năng",
+      "descriptionEn": "Restore all character skills",
+      "effect": {
+        "type": "refresh_all_skills"
+      }
+    },
+    {
+      "id": 15,
+      "name": "Lá Lành Đùm Lá Rách",
+      "nameEn": "Share and Share Alike",
+      "type": "neutral",
+      "description": "Chia đều đùi gà cho tất cả",
+      "descriptionEn": "Distribute chicken legs equally to all players",
+      "effect": {
+        "type": "redistribute_chicken_legs"
+      }
+    },
+    {
+      "id": 16,
+      "name": "Quà Tặng Thần Lửa",
+      "nameEn": "Fire God's Gift",
+      "type": "neutral",
+      "description": "Người đổ cao nhất nhận quái thú Lửa",
+      "descriptionEn": "Highest roller receives a Fire monster",
+      "effect": {
+        "type": "highest_dice_element_monster",
+        "element": "fire"
+      }
+    },
+    {
+      "id": 17,
+      "name": "Quà Tặng Thần Nước",
+      "nameEn": "Water God's Gift",
+      "type": "neutral",
+      "description": "Người đổ cao nhất nhận quái thú Nước",
+      "descriptionEn": "Highest roller receives a Water monster",
+      "effect": {
+        "type": "highest_dice_element_monster",
+        "element": "water"
+      }
+    },
+    {
+      "id": 18,
+      "name": "Quà Tặng Thần Khí",
+      "nameEn": "Air God's Gift",
+      "type": "neutral",
+      "description": "Người đổ cao nhất nhận quái thú Khí",
+      "descriptionEn": "Highest roller receives an Air monster",
+      "effect": {
+        "type": "highest_dice_element_monster",
+        "element": "air"
+      }
+    },
+    {
+      "id": 19,
+      "name": "Quà Tặng Thần Đất",
+      "nameEn": "Earth God's Gift",
+      "type": "neutral",
+      "description": "Người đổ cao nhất nhận quái thú Đất",
+      "descriptionEn": "Highest roller receives an Earth monster",
+      "effect": {
+        "type": "highest_dice_element_monster",
+        "element": "earth"
+      }
+    },
+    {
+      "id": 20,
+      "name": "Điểm Danh Đột Xuất",
+      "nameEn": "Surprise Roll Call",
+      "type": "neutral",
+      "description": "Nhận bonus thẻ quái thú ngay lập tức",
+      "descriptionEn": "Receive a bonus monster card immediately",
+      "effect": {
+        "type": "bonus_monster"
+      }
+    },
+    {
+      "id": 21,
+      "name": "Chiến Công Đội Nhóm",
+      "nameEn": "Team Achievement",
+      "type": "neutral",
+      "description": "Thử thách hang động hợp tác",
+      "descriptionEn": "Cooperative cave challenge",
+      "effect": {
+        "type": "coop_challenge"
+      }
+    },
+    {
+      "id": 22,
+      "name": "Thử Thách Chiến Đấu",
+      "nameEn": "Combat Challenge",
+      "type": "neutral",
+      "description": "Những người điểm thấp nhất phải đấu với nhau",
+      "descriptionEn": "Players with lowest points must fight each other",
+      "effect": {
+        "type": "lowest_players_pvp"
+      }
+    }
+  ]
+}

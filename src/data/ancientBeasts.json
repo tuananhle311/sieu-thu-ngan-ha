@@ -1,0 +1,88 @@
+{
+  "ancientBeasts": [
+    {
+      "id": 1,
+      "name": "Cáo Lửa 9 Đuôi",
+      "nameEn": "Nine-Tailed Fire Fox",
+      "element": "fire",
+      "requirement": {
+        "sameElement": 2,
+        "anyElement": 1,
+        "requiredElement": "fire"
+      },
+      "victoryPoints": 3,
+      "immediateReward": {
+        "type": "permanentPower",
+        "value": 2
+      },
+      "dailyBonus": {
+        "type": "combatPower",
+        "value": 1,
+        "description": "+1 Sức mạnh mỗi chiến đấu"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bạch Tuộc Bất Mãn",
+      "nameEn": "Dissatisfied Octopus",
+      "element": "water",
+      "requirement": {
+        "sameElement": 2,
+        "anyElement": 1,
+        "requiredElement": "water"
+      },
+      "victoryPoints": 3,
+      "immediateReward": {
+        "type": "treasureCards",
+        "value": 2
+      },
+      "dailyBonus": {
+        "type": "treasureCard",
+        "value": 1,
+        "description": "+1 Bảo bối mỗi ngày"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Người Đá Yêu Cây",
+      "nameEn": "Tree-Loving Stone Man",
+      "element": "earth",
+      "requirement": {
+        "sameElement": 2,
+        "anyElement": 1,
+        "requiredElement": "earth"
+      },
+      "victoryPoints": 3,
+      "immediateReward": {
+        "type": "chickenLegs",
+        "value": 2
+      },
+      "dailyBonus": {
+        "type": "chickenLeg",
+        "value": 1,
+        "description": "+1 Đùi gà mỗi ngày"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Vẹt 4 Chân",
+      "nameEn": "Four-Legged Parrot",
+      "element": "air",
+      "requirement": {
+        "sameElement": 2,
+        "anyElement": 1,
+        "requiredElement": "air"
+      },
+      "victoryPoints": 3,
+      "immediateReward": {
+        "type": "victoryPoints",
+        "value": 2
+      },
+      "dailyBonus": {
+        "type": "victoryPoint",
+        "value": 1,
+        "description": "+1 Điểm mỗi ngày"
+      }
+    }
+  ]
+}
