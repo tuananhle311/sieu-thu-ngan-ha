@@ -15,24 +15,25 @@ const LAYOUT = {
   // Main area (y: 50 to 580)
   board: { x: 0, y: 50, w: 1280, h: 530 },      // Full width - Caves grid + Beasts
 
-  // Bottom row
-  cardHand: { x: 0, y: 580, w: 920, h: 140 },   // Card hand
-  actions: { x: 920, y: 580, w: 360, h: 140 },  // Action buttons
+  // Bottom row (single unified bar)
+  bottomBar: { x: 0, y: 580, w: 1280, h: 140 },
 
-  // Cave grid settings (6 caves in 2 rows x 3 cols)
+  // Middle column: 5 cave cards in 1 row
   caveGrid: {
-    cols: 3,
-    rows: 2,
-    caveSize: 120,
-    gapX: 80,
-    gapY: 60,
-    offsetX: 280,  // From board.x
-    offsetY: 60    // From board.y
+    cols: 5,
+    rows: 1,
+    cardW: 150,
+    cardH: 200,
+    gapX: 20,
+    offsetY: 110   // From board.y (shifted up)
   },
 
-  // Beast grid (4 beasts in horizontal row on the board)
-  beastSize: 100,
-  beastGap: 20,
+  // Side columns: 2 boss cards stacked per side (left col + right col)
+  beastCardW: 160,
+  beastCardH: 230,
+  beastGapY: 20,
+  beastSideMargin: 30,
+  beastOffsetY: 30,
 
   // Player panel settings
   playerPanel: { w: 320, h: 130, gap: 10 }
@@ -72,6 +73,8 @@ export class GameScene extends BaseScene {
     this.showingBeastCapture = false
     this.showingSkillPrompt = false
     this.showingPlayers = false
+    this.showingHelp = false
+    this.showingDayEvent = false
 
     // Skill prompt data
     this.skillPromptData = null
@@ -520,9 +523,12 @@ export class GameScene extends BaseScene {
     if (canHover) {
       summary.caves.forEach((cave, index) => {
         const pos = this._getCavePosition(index)
-        const dx = mousePos.x - pos.centerX
-        const dy = mousePos.y - pos.centerY
-        if (dx * dx + dy * dy <= pos.radius * pos.radius) {
+        if (
+          mousePos.x >= pos.x &&
+          mousePos.x <= pos.x + pos.width &&
+          mousePos.y >= pos.y &&
+          mousePos.y <= pos.y + pos.height
+        ) {
           this.hoveredCave = index
         }
       })
@@ -530,7 +536,7 @@ export class GameScene extends BaseScene {
   }
 
   hasOverlay() {
-    return this.showingCards || this.showingMonsters || this.showingBeastCapture || this.showingSkillPrompt || this.showingCombat || this.showingEvent || this.showingPlayers
+    return this.showingCards || this.showingMonsters || this.showingBeastCapture || this.showingSkillPrompt || this.showingCombat || this.showingEvent || this.showingPlayers || this.showingHelp || this.showingDayEvent
   }
 
   _getCavePosition(index) {
@@ -539,26 +545,34 @@ export class GameScene extends BaseScene {
     const col = index % grid.cols
     const row = Math.floor(index / grid.cols)
 
-    const centerX = L.board.x + grid.offsetX + col * (grid.caveSize + grid.gapX) + grid.caveSize / 2
-    const centerY = L.board.y + grid.offsetY + row * (grid.caveSize + grid.gapY) + grid.caveSize / 2
+    const totalW = grid.cols * grid.cardW + (grid.cols - 1) * grid.gapX
+    const startX = L.board.x + (L.board.w - totalW) / 2
+    const x = startX + col * (grid.cardW + grid.gapX)
+    const y = L.board.y + grid.offsetY + row * (grid.cardH + (grid.gapY || 20))
 
     return {
-      x: centerX - grid.caveSize / 2,
-      y: centerY - grid.caveSize / 2,
-      centerX,
-      centerY,
-      size: grid.caveSize,
-      radius: grid.caveSize / 2
+      x,
+      y,
+      centerX: x + grid.cardW / 2,
+      centerY: y + grid.cardH / 2,
+      width: grid.cardW,
+      height: grid.cardH,
+      size: grid.cardH,
+      radius: Math.min(grid.cardW, grid.cardH) / 2
     }
   }
 
   _getBeastPosition(index) {
     const L = this.layout
-    const totalW = 4 * L.beastSize + 3 * L.beastGap
-    const startX = L.board.x + (L.board.w - totalW) / 2
-    const x = startX + index * (L.beastSize + L.beastGap)
-    const y = L.board.y + 380
-    return { x, y, size: L.beastSize }
+    // 2x2 layout: 0=left-top, 1=right-top, 2=left-bottom, 3=right-bottom
+    const isRight = index % 2 === 1
+    const isBottom = index >= 2
+    const x = isRight
+      ? L.board.x + L.board.w - L.beastCardW - L.beastSideMargin
+      : L.board.x + L.beastSideMargin
+    const y = L.board.y + L.beastOffsetY +
+      (isBottom ? L.beastCardH + L.beastGapY : 0)
+    return { x, y, width: L.beastCardW, height: L.beastCardH, size: L.beastCardH }
   }
 
   _getPlayerPanelPosition(index) {
@@ -589,15 +603,12 @@ export class GameScene extends BaseScene {
     // Main area - Caves
     this._renderBoard(summary)
 
-    // Bottom row - Card hand (always visible during player turns)
-    this._renderCardHand(summary)
-
-    // Bottom row - Action buttons
-    if (summary.currentPhase === PHASES.PLAYER_TURNS && !this.showingCombat && !this.showingEvent) {
-      this._renderActionButtons(summary)
-    }
+    // Bottom unified bar (left monster box, center fanned cards, right skip)
+    this._renderBottomBar(summary)
 
     // Overlays (on top of everything)
+    if (this.showingHelp) this._renderHelpPopup()
+    if (this.showingDayEvent) this._renderDayEventPopup(summary)
     if (this.showingPlayers) this._renderPlayersPopup(summary)
     if (this.showingCards) this._renderCardPanel(summary)
     if (this.showingMonsters) this._renderMonsterPanel(summary)
@@ -670,44 +681,47 @@ export class GameScene extends BaseScene {
     const r = this.renderer
     const L = this.layout
 
-    // Header background
-    r.drawRect(L.header.x, L.header.y, L.header.w, L.header.h, '#1a1a2e', 0)
-
-    // Board center background
-    r.drawRect(L.board.x, L.board.y, L.board.w, L.board.h, '#1e2a4a', 0)
-
-    // Card hand background
-    r.drawRect(L.cardHand.x, L.cardHand.y, L.cardHand.w, L.cardHand.h, '#1a1a2e', 0)
-
-    // Actions background
-    r.drawRect(L.actions.x, L.actions.y, L.actions.w, L.actions.h, '#16213e', 0)
-
-    // Grid lines for visual separation
-    r.drawRectOutline(L.board.x, L.board.y, L.board.w, L.board.h, '#2a3a5a', 1, 0)
-    r.drawRectOutline(L.cardHand.x, L.cardHand.y, L.cardHand.w, L.cardHand.h, '#2a3a5a', 1, 0)
+    // Header strip (semi-transparent over galaxy)
+    r.drawRect(L.header.x, L.header.y, L.header.w, L.header.h, 'rgba(10,10,25,0.65)', 0)
   }
 
   _renderHeader(summary) {
     const r = this.renderer
     const L = this.layout
 
-    // Day counter
-    r.drawText(`Ngày ${summary.currentDay}/${summary.maxDays}`, L.header.x + 20, L.header.y + 18, {
+    // Day counter (clickable - shows current day's event)
+    const dayLabel = `Ngày ${summary.currentDay}/${summary.maxDays}`
+    r.drawText(dayLabel, L.header.x + 20, L.header.y + 18, {
       font: 'bold 24px Arial',
       color: r.colors.gold,
     })
+    const dayRegion = { x: L.header.x + 16, y: L.header.y + 12, width: 130, height: 32 }
+    this.inputHandler.registerRegion('showDayEvent', dayRegion,
+      () => { this.showingDayEvent = !this.showingDayEvent })
+
+    // Help [?] button next to day counter
+    const helpBtn = { x: L.header.x + 150, y: L.header.y + 12, width: 28, height: 28 }
+    const helpHovered = this.inputHandler.isMouseOverRegion(helpBtn)
+    r.drawCircle(helpBtn.x + 14, helpBtn.y + 14, 14, helpHovered ? r.colors.accent : r.colors.secondary)
+    r.drawCircleOutline(helpBtn.x + 14, helpBtn.y + 14, 14, r.colors.gold, 2)
+    r.drawCenteredText('?', helpBtn.x + 14, helpBtn.y + 15, {
+      font: 'bold 18px Arial', color: r.colors.text, baseline: 'middle'
+    })
+    this.inputHandler.registerRegion('toggleHelp', helpBtn,
+      () => { this.showingHelp = !this.showingHelp })
 
     // Phase name
     const phaseNames = {
       [PHASES.DAILY_REWARD]: 'Phát Thưởng',
       [PHASES.EVENT]: 'Sự Kiện',
-      [PHASES.PLAYER_TURNS]: 'Lượt Chơi',
       [PHASES.DAY_END]: 'Kết Thúc Ngày',
     }
-    r.drawText(phaseNames[summary.currentPhase], L.header.x + 180, L.header.y + 18, {
-      font: '18px Arial',
-      color: r.colors.text,
-    })
+    if (phaseNames[summary.currentPhase]) {
+      r.drawText(phaseNames[summary.currentPhase], L.header.x + 200, L.header.y + 18, {
+        font: '18px Arial',
+        color: r.colors.text,
+      })
+    }
 
     // Current player info (centered)
     if (summary.currentPhase === PHASES.PLAYER_TURNS) {
@@ -758,51 +772,17 @@ export class GameScene extends BaseScene {
 
   _renderBeasts(summary) {
     const r = this.renderer
-    const L = this.layout
-
-    // Section title centered on board
-    r.drawCenteredText('Cổ Thú', L.board.x + L.board.w / 2, L.board.y + 365, {
-      font: 'bold 16px Arial', color: r.colors.gold
-    })
 
     summary.ancientBeasts.forEach((beast, index) => {
       if (index >= 4) return
       const pos = this._getBeastPosition(index)
       const canCapture = this.gameEngine.canCaptureAncientBeast(index)
 
-      // Beast card background
-      const bgColor = canCapture ? r.colors.accent : r.colors.secondary
-      r.drawRect(pos.x, pos.y, pos.size, pos.size, bgColor, 8)
-      if (canCapture) {
-        r.drawRectOutline(pos.x, pos.y, pos.size, pos.size, r.colors.gold, 2, 8)
-      }
+      r.drawBeastCard(pos.x, pos.y, pos.width, pos.height, beast, { canCapture })
 
-      // Beast name
-      r.drawCenteredText(beast.name, pos.x + pos.size / 2, pos.y + 14, {
-        font: 'bold 12px Arial', color: r.colors.text
-      })
-
-      // Element icon
-      const elemColors = { fire: r.colors.fire, water: r.colors.water, earth: r.colors.earth, air: r.colors.air }
-      r.drawCircle(pos.x + pos.size / 2, pos.y + 50, 18, elemColors[beast.element] || '#888')
-      r.drawCenteredText(beast.element[0].toUpperCase(), pos.x + pos.size / 2, pos.y + 50, {
-        font: 'bold 14px Arial', color: '#fff', baseline: 'middle'
-      })
-
-      // Victory points
-      r.drawCenteredText('3⭐', pos.x + pos.size / 2, pos.y + 78, {
-        font: '14px Arial', color: r.colors.gold
-      })
-
-      // Requirement
-      r.drawCenteredText(`2${beast.element[0].toUpperCase()}+1`, pos.x + pos.size / 2, pos.y + 93, {
-        font: '12px Arial', color: '#aaa'
-      })
-
-      // Click region
       if (canCapture && summary.currentPhase === PHASES.PLAYER_TURNS) {
         this.inputHandler.registerRegion(`beast_${index}`,
-          { x: pos.x, y: pos.y, width: pos.size, height: pos.size },
+          { x: pos.x, y: pos.y, width: pos.width, height: pos.height },
           () => this.onBeastClick(index))
       }
     })
@@ -826,32 +806,16 @@ export class GameScene extends BaseScene {
                           this.isMyTurn()
 
       // Use drawCave from renderer
-      r.drawCave(pos.x, pos.y, pos.size, cave, { hovered: isHovered, selectable: isSelectable })
-
-      // Cave cost indicator
-      r.drawCenteredText(`🍗${cave.cost}`, pos.centerX, pos.y + pos.size + 15, {
-        font: '14px Arial', color: r.colors.text
-      })
+      r.drawCave(pos.x, pos.y, pos.width, pos.height, cave, { hovered: isHovered, selectable: isSelectable })
 
       // Click region
       if (isSelectable && !this.hasOverlay()) {
         this.inputHandler.registerRegion(`cave_${index}`,
-          { x: pos.x, y: pos.y, width: pos.size, height: pos.size, centerX: pos.centerX, centerY: pos.centerY, radius: pos.radius },
+          { x: pos.x, y: pos.y, width: pos.width, height: pos.height },
           () => this.onCaveClick(index))
       }
     })
 
-    // Win probability hint for hovered cave
-    if (this.hoveredCave !== null && summary.currentPhase === PHASES.PLAYER_TURNS) {
-      const cave = summary.caves[this.hoveredCave]
-      if (cave && cave.monster) {
-        const winProb = this.gameEngine.getWinProbability(this.hoveredCave)
-        const pos = this._getCavePosition(this.hoveredCave)
-        r.drawCenteredText(`${Math.round(winProb * 100)}% thắng`, pos.centerX, pos.y - 10, {
-          font: 'bold 14px Arial', color: winProb > 0.5 ? '#4caf50' : '#ff5722'
-        })
-      }
-    }
   }
 
   _renderPlayerPanels(summary) {
@@ -1049,228 +1013,352 @@ export class GameScene extends BaseScene {
     })
   }
 
-  _renderCardHand(summary) {
+  _renderDayEventPopup(summary) {
     const r = this.renderer
-    const L = this.layout
+    r.drawRect(0, 0, r.width, r.height, 'rgba(0,0,0,0.6)')
 
-    // In multiplayer, show MY cards, not current player's cards
-    const displayPlayerIndex = this.isMultiplayer ? this.myPlayerIndex : summary.currentPlayerIndex
-    const player = summary.players[displayPlayerIndex]
+    const panelW = 520
+    const panelH = 280
+    const panelX = (r.width - panelW) / 2
+    const panelY = (r.height - panelH) / 2
 
-    // Safety check - if player doesn't exist, show error
-    if (!player) {
-      r.drawCenteredText(`Không tìm thấy người chơi (index: ${displayPlayerIndex})`, L.cardHand.x + L.cardHand.w / 2, L.cardHand.y + L.cardHand.h / 2, {
-        font: '14px Arial', color: '#ff4444'
-      })
-      return
-    }
+    r.drawRect(panelX, panelY, panelW, panelH, r.colors.secondary, 12)
+    r.drawRectOutline(panelX, panelY, panelW, panelH, r.colors.gold, 2, 12)
 
-    const cards = player.treasureCards || []
-
-    // Only show cards during player turns
-    if (summary.currentPhase !== PHASES.PLAYER_TURNS) {
-      r.drawCenteredText('Chờ đến lượt chơi...', L.cardHand.x + L.cardHand.w / 2, L.cardHand.y + L.cardHand.h / 2, {
-        font: '16px Arial', color: '#666'
-      })
-      return
-    }
-
-    // Section label
-    r.drawText('Bảo Bối:', L.cardHand.x + 10, L.cardHand.y + 30, {
-      font: 'bold 14px Arial', color: r.colors.gold
+    r.drawCenteredText(`Sự Kiện Ngày ${summary.currentDay}`, r.width / 2, panelY + 30, {
+      font: 'bold 22px Arial', color: r.colors.gold
     })
 
-    // Show card count
-    r.drawText(`(${cards.length} thẻ)`, L.cardHand.x + 80, L.cardHand.y + 30, {
-      font: '14px Arial', color: '#888'
+    const event = summary.currentEvent
+    if (event) {
+      r.drawCenteredText(event.name || 'Sự kiện', r.width / 2, panelY + 80, {
+        font: 'bold 18px Arial', color: r.colors.text
+      })
+      r.drawWrappedText(
+        event.description || '',
+        r.width / 2,
+        panelY + 150,
+        panelW - 60,
+        {
+          font: '15px Arial',
+          color: '#ddd',
+          align: 'center',
+          baseline: 'middle',
+          maxLines: 5,
+          lineHeight: 22,
+        }
+      )
+    } else {
+      r.drawCenteredText('Hôm nay không có sự kiện', r.width / 2, panelY + 130, {
+        font: '16px Arial', color: '#aaa'
+      })
+    }
+
+    const btnW = 90, btnH = 36
+    const btnX = panelX + panelW - btnW - 12
+    const btnY = panelY + 12
+    const btnRegion = { x: btnX, y: btnY, width: btnW, height: btnH }
+    r.drawButton(btnX, btnY, btnW, btnH, 'Đóng', {
+      bgColor: r.colors.primary,
+      hovered: this.inputHandler.isMouseOverRegion(btnRegion)
     })
-
-    // In multiplayer, show waiting message if not my turn
-    if (this.isMultiplayer && !this.isMyTurn()) {
-      const currentPlayer = summary.players[summary.currentPlayerIndex]
-      r.drawCenteredText(`Chờ ${currentPlayer.name} hành động...`, L.cardHand.x + L.cardHand.w / 2, L.cardHand.y + 55, {
-        font: '14px Arial', color: '#ff9800'
-      })
-      // Still show cards below but disabled
-    }
-
-    // If AI turn (offline mode)
-    if (!this.isMultiplayer && player.isAI) {
-      r.drawCenteredText('Lượt của AI...', L.cardHand.x + L.cardHand.w / 2, L.cardHand.y + 55, {
-        font: '14px Arial', color: '#888'
-      })
-      return
-    }
-
-    if (cards.length === 0) {
-      r.drawCenteredText('Không có thẻ bảo bối', L.cardHand.x + L.cardHand.w / 2, L.cardHand.y + 55, {
-        font: '14px Arial', color: '#888'
-      })
-      return
-    }
-
-    // Card rendering settings
-    const cardW = 130
-    const cardH = 90
-    const cardGap = 8
-    const startX = L.cardHand.x + 10
-    const startY = L.cardHand.y + 42
-    const maxVisible = Math.floor((L.cardHand.w - 20) / (cardW + cardGap))
-
-    cards.slice(0, maxVisible).forEach((card, index) => {
-      const x = startX + index * (cardW + cardGap)
-      const canPlay = this.gameEngine.canPlayCard(card)
-      const typeColor = card.type === 'instant' ? '#44cc44' : '#ff4444'
-      const isHovered = this.inputHandler.isMouseOverRegion({ x, y: startY, width: cardW, height: cardH })
-
-      // Card background with hover effect
-      const bgColor = canPlay
-        ? (isHovered ? '#3a5a8a' : r.colors.accent)
-        : '#333'
-      r.drawRect(x, startY, cardW, cardH, bgColor, 8)
-      r.drawRectOutline(x, startY, cardW, cardH, typeColor, isHovered ? 3 : 2, 8)
-
-      // Card name (full text)
-      r.drawCenteredText(card.name, x + cardW / 2, startY + 12, {
-        font: 'bold 12px Arial', color: r.colors.text
-      })
-
-      // Card type label
-      const typeIcon = card.type === 'instant' ? '⚡' : '🎯'
-      const typeLabel = card.type === 'instant' ? 'Tức thì' : 'Hành động'
-      r.drawCenteredText(`${typeIcon} ${typeLabel}`, x + cardW / 2, startY + 30, {
-        font: '12px Arial', color: typeColor
-      })
-
-      // Card description (wrap to 2 lines)
-      const desc = card.description || ''
-      const maxLineLen = 18
-      if (desc.length <= maxLineLen) {
-        r.drawCenteredText(desc, x + cardW / 2, startY + 48, {
-          font: '12px Arial', color: '#ccc'
-        })
-      } else {
-        const breakIdx = desc.lastIndexOf(' ', maxLineLen)
-        const line1 = desc.substring(0, breakIdx > 0 ? breakIdx : maxLineLen)
-        const line2 = desc.substring(breakIdx > 0 ? breakIdx + 1 : maxLineLen)
-        r.drawCenteredText(line1, x + cardW / 2, startY + 46, {
-          font: '12px Arial', color: '#ccc'
-        })
-        r.drawCenteredText(line2.length > maxLineLen ? line2.substring(0, maxLineLen - 2) + '..' : line2, x + cardW / 2, startY + 60, {
-          font: '12px Arial', color: '#ccc'
-        })
-      }
-
-      // Playable indicator or type label
-      if (canPlay) {
-        r.drawCenteredText('▶ Dùng', x + cardW / 2, startY + 76, {
-          font: 'bold 12px Arial', color: r.colors.gold
-        })
-      } else {
-        r.drawCenteredText('Chưa dùng được', x + cardW / 2, startY + 76, {
-          font: '12px Arial', color: '#666'
-        })
-      }
-
-      // Register click region
-      if (canPlay && !this.hasOverlay()) {
-        this.inputHandler.registerRegion(`handCard_${index}`,
-          { x, y: startY, width: cardW, height: cardH },
-          () => this.onCardClick(index))
-      }
-    })
-
-    // Show overflow count
-    if (cards.length > maxVisible) {
-      const overflowX = startX + maxVisible * (cardW + cardGap)
-      r.drawRect(overflowX, startY, 50, cardH, '#333', 8)
-      r.drawCenteredText(`+${cards.length - maxVisible}`, overflowX + 25, startY + cardH / 2, {
-        font: 'bold 16px Arial', color: '#888', baseline: 'middle'
-      })
-    }
+    this.inputHandler.registerRegion('closeDayEvent', btnRegion,
+      () => { this.showingDayEvent = false })
   }
 
-  _renderActionButtons(summary) {
+  _renderHelpPopup() {
+    const r = this.renderer
+    r.drawRect(0, 0, r.width, r.height, 'rgba(0,0,0,0.6)')
+
+    const panelW = 480
+    const panelH = 320
+    const panelX = (r.width - panelW) / 2
+    const panelY = (r.height - panelH) / 2
+
+    r.drawRect(panelX, panelY, panelW, panelH, r.colors.secondary, 12)
+    r.drawRectOutline(panelX, panelY, panelW, panelH, r.colors.gold, 2, 12)
+
+    r.drawCenteredText('Chú Thích Biểu Tượng', r.width / 2, panelY + 30, {
+      font: 'bold 22px Arial', color: r.colors.gold
+    })
+
+    const items = [
+      { icon: '⚔️', label: 'Sức mạnh vĩnh viễn (+ chiến đấu)' },
+      { icon: '📜', label: 'Thẻ bảo bối' },
+      { icon: '🍗', label: 'Đùi gà (dùng để vào hang)' },
+      { icon: '⭐', label: 'Điểm chiến công' },
+    ]
+    const startY = panelY + 80
+    const rowH = 44
+    items.forEach((it, i) => {
+      const y = startY + i * rowH
+      r.drawText(it.icon, panelX + 40, y, { font: '28px Arial', baseline: 'middle' })
+      r.drawText(it.label, panelX + 90, y, {
+        font: '16px Arial', color: r.colors.text, baseline: 'middle'
+      })
+    })
+
+    // Close button
+    const btnW = 90, btnH = 36
+    const btnX = panelX + panelW - btnW - 12
+    const btnY = panelY + 12
+    const btnRegion = { x: btnX, y: btnY, width: btnW, height: btnH }
+    r.drawButton(btnX, btnY, btnW, btnH, 'Đóng', {
+      bgColor: r.colors.primary,
+      hovered: this.inputHandler.isMouseOverRegion(btnRegion)
+    })
+    this.inputHandler.registerRegion('closeHelp', btnRegion,
+      () => { this.showingHelp = false })
+  }
+
+  _renderBottomBar(summary) {
     const r = this.renderer
     const L = this.layout
-    const currentPlayer = summary.players[summary.currentPlayerIndex]
-    const isHuman = !currentPlayer.isAI
+    const bar = L.bottomBar
 
-    // In multiplayer, check if it's my turn for action buttons
+    const displayPlayerIndex = this.isMultiplayer ? this.myPlayerIndex : summary.currentPlayerIndex
+    const player = summary.players[displayPlayerIndex]
+    if (!player) return
+
     const isMyTurnNow = this.isMyTurn()
-    const canAct = this.isMultiplayer ? isMyTurnNow : isHuman
+    const isHuman = !player.isAI
+    const canAct =
+      summary.currentPhase === PHASES.PLAYER_TURNS &&
+      !this.showingCombat &&
+      !this.showingEvent &&
+      (this.isMultiplayer ? isMyTurnNow : isHuman)
 
-    // In multiplayer, show MY stats, not current player stats
-    const myPlayer = this.isMultiplayer ? summary.players[this.myPlayerIndex] : currentPlayer
+    // ─── LEFT: Monster box (transparent, icon only) ───
+    const boxSize = 110
+    const boxX = bar.x + 15
+    const boxY = bar.y + (bar.h - boxSize) / 2
+    const monsterCount = player.capturedMonsters?.length || 0
+    const boxRegion = { x: boxX, y: boxY, width: boxSize, height: boxSize }
+    const boxHovered = this.inputHandler.isMouseOverRegion(boxRegion)
 
-    // Button layout
-    const btnW = 155
-    const btnH = 40
-    const btnGap = 8
-    const startX = L.actions.x + 10
-    const startY = L.actions.y + 10
+    const iconScale = boxHovered ? 1.15 : 1
+    r.ctx.save()
+    r.ctx.translate(boxX + boxSize / 2, boxY + boxSize / 2 - 8)
+    r.ctx.scale(iconScale, iconScale)
+    r.drawCenteredText('👾', 0, 0, { font: '52px Arial', baseline: 'middle' })
+    r.ctx.restore()
+    r.drawCenteredText(`${monsterCount} Thú`, boxX + boxSize / 2, boxY + boxSize - 8, {
+      font: 'bold 14px Arial', color: r.colors.text, baseline: 'bottom'
+    })
+    this.inputHandler.registerRegion('showMonsters', boxRegion, () =>
+      this.toggleMonsterPanel()
+    )
 
-    // Row 1: View buttons (always available)
-    const cardsBtn = { x: startX, y: startY, w: btnW, h: btnH }
-    const monstersBtn = { x: startX + btnW + btnGap, y: startY, w: btnW, h: btnH }
-
-    // Row 2: Action buttons
-    const skillBtn = { x: startX, y: startY + btnH + btnGap, w: btnW, h: btnH }
-    const passBtn = { x: startX + btnW + btnGap, y: startY + btnH + btnGap, w: btnW, h: btnH }
-
-    // Show Cards button (always available - view my cards)
-    r.drawButton(cardsBtn.x, cardsBtn.y, cardsBtn.w, cardsBtn.h, `📜 Bài (${myPlayer?.treasureCards?.length || 0})`, {
-      bgColor: this.showingCards ? r.colors.primary : r.colors.secondary,
-      hovered: this.inputHandler.isMouseOverRegion(cardsBtn)
+    // Reward summary next to monster box (element counts → rewards)
+    const captured = player.capturedMonsters || []
+    const counts = { fire: 0, water: 0, earth: 0, air: 0 }
+    captured.forEach((m) => {
+      if (counts[m.element] !== undefined) counts[m.element]++
+    })
+    const rewardRows = [
+      { elem: '🔥', reward: '⚔️', n: counts.fire },
+      { elem: '💧', reward: '📜', n: counts.water },
+      { elem: '🌍', reward: '🍗', n: counts.earth },
+      { elem: '💨', reward: '⭐', n: counts.air },
+    ]
+    const rewardX = boxX + boxSize + 12
+    const rewardRowH = 22
+    const rewardStartY = boxY + (boxSize - rewardRowH * rewardRows.length) / 2
+    rewardRows.forEach((row, i) => {
+      const ry = rewardStartY + i * rewardRowH + rewardRowH / 2
+      r.drawText(row.elem, rewardX, ry, {
+        font: '16px Arial', baseline: 'middle'
+      })
+      r.drawText('→', rewardX + 26, ry, {
+        font: '14px Arial', color: '#888', baseline: 'middle'
+      })
+      r.drawText(row.reward, rewardX + 46, ry, {
+        font: '16px Arial', baseline: 'middle'
+      })
+      r.drawText(`×${row.n}`, rewardX + 72, ry, {
+        font: 'bold 14px Arial',
+        color: row.n > 0 ? r.colors.gold : '#555',
+        baseline: 'middle',
+      })
     })
 
-    // Show Monsters button (always available - view my monsters)
-    r.drawButton(monstersBtn.x, monstersBtn.y, monstersBtn.w, monstersBtn.h, `👾 Thú (${myPlayer?.capturedMonsters?.length || 0})`, {
-      bgColor: this.showingMonsters ? r.colors.primary : r.colors.secondary,
-      hovered: this.inputHandler.isMouseOverRegion(monstersBtn)
+    // ─── RIGHT: Skip turn (transparent label, no button bg) ───
+    const btnW = 150
+    const btnH = 64
+    const btnX = bar.x + bar.w - btnW - 15
+    const btnY = bar.y + (bar.h - btnH) / 2
+    const btnRegion = { x: btnX, y: btnY, width: btnW, height: btnH }
+    const btnHovered = canAct && this.inputHandler.isMouseOverRegion(btnRegion)
+    const labelColor = !canAct ? '#666' : (btnHovered ? r.colors.gold : r.colors.text)
+    r.drawCenteredText('⏭️ Bỏ Lượt', btnX + btnW / 2, btnY + btnH / 2, {
+      font: 'bold 22px Arial', color: labelColor, baseline: 'middle'
     })
+    if (canAct) {
+      this.inputHandler.registerRegion('pass', btnRegion, () => this.onPassClick())
+    }
 
-    // Always register view buttons (cards, monsters) - these should always work
-    this.inputHandler.registerRegion('showCards', cardsBtn, () => this.toggleCardPanel())
-    this.inputHandler.registerRegion('showMonsters', monstersBtn, () => this.toggleMonsterPanel())
-
-    // Show waiting indicator if not my turn (but still show buttons above)
+    // Status text under skip button if waiting / AI
     if (this.isMultiplayer && !isMyTurnNow) {
-      r.drawCenteredText(`Chờ ${currentPlayer.name}...`, L.actions.x + L.actions.w / 2, startY + btnH + btnGap + 20, {
-        font: '14px Arial', color: '#ff9800'
+      const cur = summary.players[summary.currentPlayerIndex]
+      r.drawCenteredText(`Chờ ${cur?.name || ''}…`, btnX + btnW / 2, btnY + btnH + 14, {
+        font: '12px Arial', color: '#ff9800'
       })
-      // Don't register action buttons, but view buttons are already registered
-      return
+    } else if (!isHuman && !this.isMultiplayer) {
+      r.drawCenteredText('AI đang suy nghĩ…', btnX + btnW / 2, btnY + btnH + 14, {
+        font: '12px Arial', color: '#888'
+      })
     }
 
-    if (!isHuman && !this.isMultiplayer) {
-      // Show AI thinking indicator (offline mode only)
-      r.drawCenteredText('AI đang suy nghĩ...', L.actions.x + L.actions.w / 2, startY + btnH + btnGap + 20, {
-        font: '14px Arial', color: '#888'
-      })
-      return
-    }
+    // ─── CENTER: Fanned cards (skill + treasure cards) ───
+    if (summary.currentPhase !== PHASES.PLAYER_TURNS) return
 
-    // Skill button
-    const skillCheck = this.gameEngine.canUseSkill()
     const skillInfo = this.gameEngine.getSkillInfo()
-    const skillEnabled = canAct && skillCheck.canUse
-    r.drawButton(skillBtn.x, skillBtn.y, skillBtn.w, skillBtn.h, `⚡ ${skillInfo?.name || 'Kỹ năng'}`, {
-      bgColor: skillEnabled ? r.colors.accent : '#444',
-      disabled: !skillEnabled,
-      hovered: skillEnabled && this.inputHandler.isMouseOverRegion(skillBtn)
+    const skillCheck = this.gameEngine.canUseSkill()
+    const cards = []
+    if (skillInfo) {
+      cards.push({
+        kind: 'skill',
+        name: skillInfo.name,
+        description: skillInfo.description,
+        canPlay: canAct && skillCheck.canUse,
+      })
+    }
+    ;(player.treasureCards || []).forEach((c, i) => {
+      cards.push({
+        kind: 'treasure',
+        name: c.name,
+        description: c.description,
+        type: c.type,
+        canPlay: canAct && this.gameEngine.canPlayCard(c),
+        treasureIndex: i,
+      })
+    })
+    if (cards.length === 0) return
+
+    const cardW = 140
+    const cardH = 180
+    const fanCenterX = bar.x + bar.w / 2
+    const fanCenterY = bar.y + bar.h + 140
+    const fanRadius = 320
+    const N = cards.length
+    const totalArc = Math.min(1.05, 0.18 * N)
+    const startAngle = -totalArc / 2
+    const step = N > 1 ? totalArc / (N - 1) : 0
+
+    // Precompute layout
+    const layouts = cards.map((card, index) => {
+      const angle = N === 1 ? 0 : startAngle + index * step
+      return {
+        card,
+        index,
+        angle,
+        cx: fanCenterX + Math.sin(angle) * fanRadius,
+        cy: fanCenterY - Math.cos(angle) * fanRadius,
+      }
     })
 
-    // Pass button
-    r.drawButton(passBtn.x, passBtn.y, passBtn.w, passBtn.h, '⏭️ Bỏ Lượt', {
-      bgColor: canAct ? r.colors.secondary : '#444',
-      disabled: !canAct,
-      hovered: this.inputHandler.isMouseOverRegion(passBtn)
-    })
+    // Find hovered card (iterate from last to first so overlapping front cards win)
+    const mouse = this.inputHandler.getMousePosition?.() || this.inputHandler.mousePos
+    let hoveredIdx = -1
+    if (mouse) {
+      for (let i = layouts.length - 1; i >= 0; i--) {
+        const l = layouts[i]
+        if (
+          mouse.x >= l.cx - cardW / 2 &&
+          mouse.x <= l.cx + cardW / 2 &&
+          mouse.y >= l.cy - cardH / 2 &&
+          mouse.y <= l.cy + cardH / 2
+        ) {
+          hoveredIdx = i
+          break
+        }
+      }
+    }
 
-    // Register action button click regions
-    this.inputHandler.registerRegion('useSkill', skillBtn, () => skillCheck.canUse && this.onSkillClick())
-    this.inputHandler.registerRegion('pass', passBtn, () => this.onPassClick())
+    const drawOne = (l, scale = 1, lifted = false) => {
+      const ctx = r.ctx
+      const card = l.card
+      const isSkill = card.kind === 'skill'
+
+      ctx.save()
+      // Lift hovered card upward a bit and clear its rotation
+      const drawCY = lifted ? l.cy - 30 : l.cy
+      ctx.translate(l.cx, drawCY)
+      ctx.rotate(lifted ? 0 : l.angle)
+      ctx.scale(scale, scale)
+
+      const x = -cardW / 2
+      const y = -cardH / 2
+      const borderColor = isSkill
+        ? r.colors.gold
+        : card.type === 'instant' ? '#44cc44' : '#ff4444'
+      const bg = card.canPlay
+        ? (isSkill ? r.colors.accent : '#3a5a8a')
+        : '#2a2a3a'
+
+      r.drawRect(x, y, cardW, cardH, bg, 10)
+      r.drawRectOutline(x, y, cardW, cardH, borderColor, lifted ? 3 : 2, 10)
+
+      const icon = isSkill ? '✨' : (card.type === 'instant' ? '⚡' : '🎯')
+      r.drawCenteredText(icon, 0, y + 26, { font: '28px Arial' })
+
+      r.drawWrappedText(card.name, 0, y + 70, cardW - 16, {
+        font: 'bold 14px Arial',
+        color: r.colors.text,
+        align: 'center',
+        baseline: 'middle',
+        maxLines: 2,
+        lineHeight: 17,
+      })
+
+      if (card.description) {
+        r.drawWrappedText(card.description, 0, y + 130, cardW - 16, {
+          font: '12px Arial',
+          color: '#ddd',
+          align: 'center',
+          baseline: 'middle',
+          maxLines: 3,
+          lineHeight: 15,
+        })
+      }
+
+      if (!card.canPlay) {
+        r.drawRect(x, y, cardW, cardH, 'rgba(0,0,0,0.45)', 10)
+      }
+
+      ctx.restore()
+    }
+
+    // Draw non-hovered first, hovered last (on top, scaled 1.5)
+    layouts.forEach((l, i) => {
+      if (i !== hoveredIdx) drawOne(l, 1, false)
+    })
+    if (hoveredIdx !== -1) {
+      drawOne(layouts[hoveredIdx], 1.5, true)
+    }
+
+    // Register click regions (hovered uses its enlarged bounds for accurate hit-test)
+    layouts.forEach((l, i) => {
+      const card = l.card
+      const isSkill = card.kind === 'skill'
+      const scale = i === hoveredIdx ? 1.5 : 1
+      const lift = i === hoveredIdx ? 30 : 0
+      const w = cardW * scale
+      const h = cardH * scale
+      const region = {
+        x: l.cx - w / 2,
+        y: l.cy - lift - h / 2,
+        width: w,
+        height: h,
+      }
+      if (card.canPlay && !this.hasOverlay()) {
+        const id = isSkill ? 'useSkill' : `handCard_${card.treasureIndex}`
+        this.inputHandler.registerRegion(id, region, () => {
+          if (isSkill) this.onSkillClick()
+          else this.onCardClick(card.treasureIndex)
+        })
+      }
+    })
   }
 
   _renderCardPanel(summary) {
@@ -1400,34 +1488,20 @@ export class GameScene extends BaseScene {
 
     // Monster list
     const cols = 6
-    const cardW = 100
-    const cardH = 80
+    const cardW = 78
+    const cardH = 104
     const startX = panelX + 30
     const startY = panelY + 85
 
     monsters.forEach((monster, index) => {
       const row = Math.floor(index / cols)
       const col = index % cols
-      const x = startX + col * (cardW + 8)
-      const y = startY + row * (cardH + 8)
+      const x = startX + col * (cardW + 10)
+      const y = startY + row * (cardH + 10)
 
       if (y + cardH > panelY + panelH - 50) return
 
-      const elemColors = { fire: r.colors.fire, water: r.colors.water, earth: r.colors.earth, air: r.colors.air }
-      r.drawRect(x, y, cardW, cardH, '#333', 4)
-      r.drawRectOutline(x, y, cardW, cardH, elemColors[monster.element], 2, 4)
-
-      r.drawCenteredText(monster.name, x + cardW/2, y + 15, {
-        font: '12px Arial', color: r.colors.text
-      })
-
-      r.drawCenteredText(`+${monster.power}`, x + cardW/2, y + 40, {
-        font: 'bold 16px Arial', color: elemColors[monster.element]
-      })
-
-      r.drawCenteredText(monster.element, x + cardW/2, y + 60, {
-        font: '12px Arial', color: '#aaa'
-      })
+      r.drawMonsterCard(x, y, cardW, cardH, monster)
     })
 
     if (monsters.length === 0) {
@@ -1473,30 +1547,21 @@ export class GameScene extends BaseScene {
 
     // Monster selection
     const cols = 6
-    const cardW = 100
-    const cardH = 80
+    const cardW = 78
+    const cardH = 104
     const startX = panelX + 30
     const startY = panelY + 110
 
     monsters.forEach((monster, index) => {
       const row = Math.floor(index / cols)
       const col = index % cols
-      const x = startX + col * (cardW + 8)
-      const y = startY + row * (cardH + 8)
+      const x = startX + col * (cardW + 10)
+      const y = startY + row * (cardH + 10)
 
       if (y + cardH > panelY + panelH - 80) return
 
       const isSelected = this.selectedMonsters.includes(index)
-      const elemColors = { fire: r.colors.fire, water: r.colors.water, earth: r.colors.earth, air: r.colors.air }
-
-      r.drawRect(x, y, cardW, cardH, isSelected ? r.colors.accent : '#333', 4)
-      r.drawRectOutline(x, y, cardW, cardH, isSelected ? r.colors.gold : elemColors[monster.element], 2, 4)
-
-      r.drawCenteredText(monster.name, x + cardW/2, y + 15, { font: '12px Arial', color: r.colors.text })
-      r.drawCenteredText(`+${monster.power}`, x + cardW/2, y + 40, {
-        font: 'bold 16px Arial', color: elemColors[monster.element]
-      })
-      r.drawCenteredText(monster.element, x + cardW/2, y + 60, { font: '12px Arial', color: '#aaa' })
+      r.drawMonsterCard(x, y, cardW, cardH, monster, { selected: isSelected })
 
       this.inputHandler.registerRegion(`selectMonster_${index}`,
         { x, y, width: cardW, height: cardH },

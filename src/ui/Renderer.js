@@ -36,11 +36,95 @@ export class Renderer {
   }
 
   /**
-   * Clear the canvas
+   * Clear the canvas with the galaxy background (full canvas)
    */
   clear() {
-    this.ctx.fillStyle = this.colors.background
-    this.ctx.fillRect(0, 0, this.width, this.height)
+    this.drawGalaxyBackground(0, 0, this.width, this.height)
+  }
+
+  /**
+   * Draw a galaxy-style background within a rectangle (cached offscreen)
+   */
+  drawGalaxyBackground(x, y, width, height) {
+    const key = `${width}x${height}`
+    if (!this._galaxyCache || this._galaxyCache.key !== key) {
+      this._galaxyCache = { key, canvas: this._buildGalaxy(width, height) }
+    }
+    this.ctx.drawImage(this._galaxyCache.canvas, x, y)
+  }
+
+  /**
+   * @private
+   */
+  _buildGalaxy(width, height) {
+    const off = document.createElement('canvas')
+    off.width = width
+    off.height = height
+    const c = off.getContext('2d')
+
+    // Deep space base
+    c.fillStyle = '#05060f'
+    c.fillRect(0, 0, width, height)
+
+    // Galaxy core glow
+    const cx = width * 0.55
+    const cy = height * 0.45
+    const grad = c.createRadialGradient(cx, cy, 10, cx, cy, width * 0.7)
+    grad.addColorStop(0, 'rgba(120, 80, 200, 0.55)')
+    grad.addColorStop(0.25, 'rgba(70, 40, 140, 0.35)')
+    grad.addColorStop(0.55, 'rgba(25, 15, 60, 0.25)')
+    grad.addColorStop(1, 'rgba(5, 6, 15, 0)')
+    c.fillStyle = grad
+    c.fillRect(0, 0, width, height)
+
+    // Nebula blobs
+    const nebulas = [
+      { x: width * 0.15, y: height * 0.25, r: width * 0.22, color: 'rgba(233, 69, 96, 0.18)' },
+      { x: width * 0.85, y: height * 0.7, r: width * 0.25, color: 'rgba(78, 205, 196, 0.14)' },
+      { x: width * 0.35, y: height * 0.85, r: width * 0.18, color: 'rgba(255, 107, 53, 0.12)' },
+      { x: width * 0.75, y: height * 0.15, r: width * 0.17, color: 'rgba(168, 218, 220, 0.12)' },
+    ]
+    nebulas.forEach((n) => {
+      const g = c.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r)
+      g.addColorStop(0, n.color)
+      g.addColorStop(1, 'rgba(0,0,0,0)')
+      c.fillStyle = g
+      c.fillRect(0, 0, width, height)
+    })
+
+    // Seeded star layout
+    let seed = 1337
+    const rand = () => {
+      seed = (seed * 9301 + 49297) % 233280
+      return seed / 233280
+    }
+
+    const starCount = Math.round((width * height) / 2200)
+    for (let i = 0; i < starCount; i++) {
+      const sx = rand() * width
+      const sy = rand() * height
+      const size = rand() * 1.2 + 0.2
+      const alpha = rand() * 0.7 + 0.3
+      c.fillStyle = `rgba(255,255,255,${alpha})`
+      c.fillRect(sx, sy, size, size)
+    }
+
+    const glowCount = Math.round(starCount * 0.12)
+    for (let i = 0; i < glowCount; i++) {
+      const sx = rand() * width
+      const sy = rand() * height
+      const radius = rand() * 1.8 + 1
+      const halo = c.createRadialGradient(sx, sy, 0, sx, sy, radius * 4)
+      halo.addColorStop(0, 'rgba(255,255,255,0.9)')
+      halo.addColorStop(0.4, 'rgba(200,220,255,0.35)')
+      halo.addColorStop(1, 'rgba(0,0,0,0)')
+      c.fillStyle = halo
+      c.beginPath()
+      c.arc(sx, sy, radius * 4, 0, Math.PI * 2)
+      c.fill()
+    }
+
+    return off
   }
 
   /**
@@ -115,6 +199,68 @@ export class Renderer {
    */
   drawCenteredText(text, x, y, options = {}) {
     this.drawText(text, x, y, { ...options, align: 'center' })
+  }
+
+  /**
+   * Draw text wrapped to a maximum width. Returns total rendered height.
+   */
+  drawWrappedText(text, x, y, maxWidth, options = {}) {
+    const {
+      font = this.fonts.body,
+      color = this.colors.text,
+      align = 'center',
+      baseline = 'middle',
+      lineHeight = null,
+      maxLines = 3,
+    } = options
+
+    this.ctx.font = font
+    const words = String(text).split(/\s+/)
+    const lines = []
+    let current = ''
+
+    for (const word of words) {
+      const test = current ? current + ' ' + word : word
+      if (this.ctx.measureText(test).width <= maxWidth || !current) {
+        current = test
+      } else {
+        lines.push(current)
+        current = word
+        if (lines.length >= maxLines) break
+      }
+    }
+    if (current && lines.length < maxLines) lines.push(current)
+
+    // Truncate last line with ellipsis if overflow
+    if (lines.length === maxLines) {
+      let last = lines[maxLines - 1]
+      while (
+        last.length > 1 &&
+        this.ctx.measureText(last + '…').width > maxWidth
+      ) {
+        last = last.slice(0, -1)
+      }
+      if (this.ctx.measureText(last).width > maxWidth) {
+        lines[maxLines - 1] = last + '…'
+      }
+    }
+
+    const fontSize = parseInt(font, 10) || 12
+    const lh = lineHeight || Math.round(fontSize * 1.15)
+    const totalH = lines.length * lh
+    const startY =
+      baseline === 'middle' ? y - totalH / 2 + lh / 2 : y
+
+    lines.forEach((line, i) => {
+      this.drawText(line, x, startY + i * lh, {
+        font,
+        color,
+        align,
+        baseline: 'middle',
+      })
+    })
+
+    return totalH
   }
 
   /**
@@ -211,6 +357,174 @@ export class Renderer {
   }
 
   /**
+   * Draw a monster card (3:4 ratio, element-colored background)
+   */
+  drawMonsterCard(x, y, width, height, monster, options = {}) {
+    const { selected = false, radius = 10 } = options
+    const elemColors = {
+      fire: this.colors.fire,
+      water: this.colors.water,
+      earth: this.colors.earth,
+      air: this.colors.air,
+    }
+    const elemIcons = { fire: '🔥', water: '💧', earth: '🌍', air: '💨' }
+    const rewardIcons = { fire: '⚔️', water: '📜', earth: '🍗', air: '⭐' }
+
+    const bg = elemColors[monster.element] || this.colors.secondary
+
+    this.drawRect(x, y, width, height, bg, radius)
+    this.drawRectOutline(
+      x,
+      y,
+      width,
+      height,
+      selected ? this.colors.gold : this.colors.textDark,
+      selected ? 3 : 2,
+      radius
+    )
+
+    const pad = Math.max(4, Math.round(width * 0.07))
+    const iconFont = `${Math.round(width * 0.2)}px Arial`
+    const statFont = `bold ${Math.round(width * 0.18)}px Arial`
+
+    // Top-left: element icon
+    this.drawText(elemIcons[monster.element] || '', x + pad, y + pad, {
+      font: iconFont,
+    })
+
+    // Top-right: attack
+    this.drawText(`⚔${monster.power}`, x + width - pad, y + pad, {
+      font: statFont,
+      color: this.colors.text,
+      align: 'right',
+    })
+
+    // Bottom-left: reward
+    this.drawText(
+      rewardIcons[monster.element] || '',
+      x + pad,
+      y + height - pad,
+      { font: iconFont, baseline: 'bottom' }
+    )
+
+    // Monster name (center, wrapped within card width)
+    const nameFontSize = Math.round(width * 0.13)
+    this.drawWrappedText(
+      monster.name,
+      x + width / 2,
+      y + height / 2,
+      width - pad * 2,
+      {
+        font: `bold ${nameFontSize}px Arial`,
+        color: this.colors.text,
+        align: 'center',
+        baseline: 'middle',
+        maxLines: 2,
+        lineHeight: Math.round(nameFontSize * 1.2),
+      }
+    )
+
+    return { x, y, width, height }
+  }
+
+  /**
+   * Draw a boss/ancient beast card (same 3:4 style as monster card)
+   */
+  drawBeastCard(x, y, width, height, beast, options = {}) {
+    const { canCapture = false, radius = 10 } = options
+    const elemColors = {
+      fire: this.colors.fire,
+      water: this.colors.water,
+      earth: this.colors.earth,
+      air: this.colors.air,
+    }
+    const elemIcons = { fire: '🔥', water: '💧', earth: '🌍', air: '💨' }
+
+    const bg = elemColors[beast.element] || this.colors.secondary
+
+    this.drawRect(x, y, width, height, bg, radius)
+
+    // Decorative double border (gold frame for boss cards)
+    this.drawRectOutline(
+      x,
+      y,
+      width,
+      height,
+      canCapture ? this.colors.gold : '#b8860b',
+      canCapture ? 4 : 3,
+      radius
+    )
+    const inset = 5
+    this.drawRectOutline(
+      x + inset,
+      y + inset,
+      width - inset * 2,
+      height - inset * 2,
+      canCapture ? '#fff6c2' : this.colors.gold,
+      1,
+      Math.max(2, radius - inset)
+    )
+
+    // Corner ornaments (small diamonds)
+    const drawCornerGem = (cx, cy) => {
+      this.ctx.save()
+      this.ctx.translate(cx, cy)
+      this.ctx.rotate(Math.PI / 4)
+      this.ctx.fillStyle = this.colors.gold
+      this.ctx.fillRect(-3, -3, 6, 6)
+      this.ctx.restore()
+    }
+    const off = inset + 2
+    drawCornerGem(x + off, y + off)
+    drawCornerGem(x + width - off, y + off)
+    drawCornerGem(x + off, y + height - off)
+    drawCornerGem(x + width - off, y + height - off)
+
+    const pad = Math.max(6, Math.round(width * 0.1))
+    const iconFont = `${Math.round(width * 0.18)}px Arial`
+    const statFont = `bold ${Math.round(width * 0.16)}px Arial`
+
+    // Top-left: element icon
+    this.drawText(elemIcons[beast.element] || '', x + pad, y + pad, {
+      font: iconFont,
+    })
+
+    // Top-right: victory points (reward)
+    this.drawText(`${beast.victoryPoints || 3}⭐`, x + width - pad, y + pad, {
+      font: statFont,
+      color: this.colors.gold,
+      align: 'right',
+    })
+
+    // Bottom-left: requirement (2{elem}+1)
+    const reqText = `2${(elemIcons[beast.element] || '').trim() || beast.element[0].toUpperCase()}+1`
+    this.drawText(reqText, x + pad, y + height - pad, {
+      font: `${Math.round(width * 0.12)}px Arial`,
+      color: this.colors.text,
+      baseline: 'bottom',
+    })
+
+    // Beast name (center, wrapped within card width)
+    const nameFontSize = Math.round(width * 0.11)
+    this.drawWrappedText(
+      beast.name,
+      x + width / 2,
+      y + height / 2,
+      width - pad * 2,
+      {
+        font: `bold ${nameFontSize}px Arial`,
+        color: this.colors.text,
+        align: 'center',
+        baseline: 'middle',
+        maxLines: 2,
+        lineHeight: Math.round(nameFontSize * 1.3),
+      }
+    )
+
+    return { x, y, width, height }
+  }
+
+  /**
    * Draw a player panel
    */
   drawPlayerPanel(x, y, width, height, player, isCurrentPlayer = false) {
@@ -263,58 +577,43 @@ export class Renderer {
   /**
    * Draw a cave
    */
-  drawCave(x, y, size, cave, options = {}) {
+  drawCave(x, y, width, height, cave, options = {}) {
     const { hovered = false, selectable = false } = options
 
-    // Cave background
-    let bgColor = this.colors.secondary
-    if (hovered && selectable) {
-      bgColor = this._lightenColor(this.colors.secondary, 30)
+    if (cave.monster) {
+      this.drawMonsterCard(x, y, width, height, cave.monster, {
+        selected: selectable && hovered,
+      })
+    } else {
+      this.drawRect(x, y, width, height, this.colors.secondary, 10)
+      if (selectable) {
+        this.drawRectOutline(x, y, width, height, this.colors.gold, 2, 10)
+      }
     }
 
-    this.drawCircle(x + size / 2, y + size / 2, size / 2, bgColor)
-
-    if (selectable) {
-      this.drawCircleOutline(
-        x + size / 2,
-        y + size / 2,
-        size / 2,
-        this.colors.gold,
-        2
-      )
-    }
-
-    // Cave cost
-    this.drawCenteredText(`${cave.cost}🍗`, x + size / 2, y + 15, {
-      font: this.fonts.small,
+    // Cave cost badge (above card, top-left outside)
+    this.drawText(`🍗${cave.cost}`, x, y - 6, {
+      font: 'bold 22px Arial',
       color: this.colors.text,
+      baseline: 'bottom',
     })
 
-    // Monster in cave
-    if (cave.monster) {
-      const elementColor = this.colors[cave.monster.element] || this.colors.text
-      this.drawCircle(x + size / 2, y + size / 2, 15, elementColor)
-      this.drawCenteredText(`+${cave.monster.power}`, x + size / 2, y + size / 2, {
-        font: this.fonts.small,
-        color: this.colors.textDark,
-        baseline: 'middle',
-      })
-    }
-
-    // Victory points
-    this.drawCenteredText(`${cave.victoryPoints}⭐`, x + size / 2, y + size - 25, {
-      font: this.fonts.small,
+    // Victory points badge (below card, bottom-right outside)
+    this.drawText(`${cave.victoryPoints}⭐`, x + width, y + height + 6, {
+      font: 'bold 22px Arial',
       color: this.colors.gold,
+      align: 'right',
+      baseline: 'top',
     })
 
     return {
       x,
       y,
-      width: size,
-      height: size,
-      centerX: x + size / 2,
-      centerY: y + size / 2,
-      radius: size / 2,
+      width,
+      height,
+      centerX: x + width / 2,
+      centerY: y + height / 2,
+      radius: Math.min(width, height) / 2,
     }
   }
 

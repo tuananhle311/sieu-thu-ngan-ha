@@ -69,8 +69,10 @@ export class Cave {
    * @returns {Cave} New small cave
    */
   static createSmallCave(id) {
-    // Cave cost and victory points equal to ID (1-5)
-    return new Cave(id, id, id, 'small')
+    // Fixed cost/victory-point curve for caves 1-5: 1, 1, 2, 2, 3
+    const CAVE_COSTS = [1, 1, 2, 2, 3]
+    const value = CAVE_COSTS[id - 1] ?? id
+    return new Cave(id, value, value, 'small')
   }
 
   /**

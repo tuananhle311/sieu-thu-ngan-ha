@@ -415,7 +415,7 @@ export class GameEngine {
       const eventDiscard = this.gameState.get('eventDiscard')
       eventDiscard.push(event)
       this.gameState.set('eventDiscard', eventDiscard)
-      this.gameState.set('currentEvent', null)
+      // Keep currentEvent set so the day's event remains visible until the next draw
     }
     this.context.refundOnCapture = false
     this.advancePhase()
